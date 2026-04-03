@@ -28,7 +28,10 @@ public class BankService {
     }
 
     public BankAccount getAccountById(UUID id) {
-        return createdAccounts.stream().filter(account -> account.getId().equals(id)).findFirst().orElseThrow( () ->new AccountNotFoundException("account not found") );
+        return createdAccounts.stream()
+                .filter(account -> account.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new AccountNotFoundException("account not found"));
     }
 
     public void deposit(BigDecimal depot, UUID id) {
@@ -47,6 +50,6 @@ public class BankService {
         if (bankAccount.getSolde().compareTo(withdraw) < 0) {
             throw new BankOverdraftAuthorizedExceededException("You have no overdraft protection");
         }
-        bankAccount.setSolde(bankAccount.getSolde().min(withdraw));
+        bankAccount.setSolde(bankAccount.getSolde().subtract(withdraw));
     }
 }
