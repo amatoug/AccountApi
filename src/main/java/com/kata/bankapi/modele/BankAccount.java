@@ -9,9 +9,9 @@ import java.util.UUID;
 @Getter
 @Setter
 public class BankAccount {
-    UUID id;
-    String name;
-    BigDecimal solde;
+    private UUID id;
+    private String name;
+    private BigDecimal solde;
 
     public BankAccount(String name) {
         this.name = name;
