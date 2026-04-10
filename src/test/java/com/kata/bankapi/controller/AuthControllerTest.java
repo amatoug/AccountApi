@@ -93,4 +93,13 @@ class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Identifiant et mot de passe requis"));
     }
+
+    @Test
+    void should_return_400_when_body_is_empty() throws Exception {
+        mockMvc.perform(post("/api/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Identifiant et mot de passe requis"));
+    }
 }
