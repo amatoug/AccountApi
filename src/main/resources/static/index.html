@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mon Compte Bancaire</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      padding: 2rem;
+      width: 100%;
+      max-width: 420px;
+    }
+    h1 { font-size: 1.5rem; color: #1a202c; margin-bottom: 1.5rem; text-align: center; }
+    h2 { font-size: 1rem; color: #4a5568; margin-bottom: 1rem; }
+    .balance-display {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: white;
+    }
+    .balance-label { font-size: 0.85rem; opacity: 0.85; margin-bottom: 0.25rem; }
+    .balance-amount { font-size: 2.5rem; font-weight: 700; letter-spacing: -1px; }
+    .balance-name { font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem; }
+    .section { margin-bottom: 1.25rem; }
+    .row { display: flex; gap: 0.5rem; }
+    label { display: block; font-size: 0.85rem; color: #4a5568; margin-bottom: 0.3rem; font-weight: 500; }
+    input {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: #667eea; }
+    button {
+      padding: 0.6rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+    button:hover { opacity: 0.85; }
+    .btn-primary { background: #667eea; color: white; width: 100%; margin-top: 0.75rem; }
+    .btn-deposit { background: #48bb78; color: white; flex: 1; }
+    .btn-withdraw { background: #f6ad55; color: white; flex: 1; }
+    .btn-create { background: #667eea; color: white; width: 100%; }
+    .btn-logout {
+      background: none;
+      color: #718096;
+      font-size: 0.8rem;
+      padding: 0.3rem 0.6rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-logout:hover { color: #e53e3e; border-color: #e53e3e; opacity: 1; }
+    .error { color: #e53e3e; font-size: 0.85rem; margin-top: 0.5rem; }
+    .success { color: #38a169; font-size: 0.85rem; margin-top: 0.5rem; }
+    .divider { border: none; border-top: 1px solid #e2e8f0; margin: 1.25rem 0; }
+    .id-display {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.78rem;
+      color: #718096;
+      word-break: break-all;
+      margin-top: 0.5rem;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .topbar h1 { margin-bottom: 0; }
+    .login-hint {
+      background: #ebf4ff;
+      border: 1px solid #bee3f8;
+      border-radius: 8px;
+      padding: 0.6rem 0.85rem;
+      font-size: 0.8rem;
+      color: #2b6cb0;
+      margin-bottom: 1.25rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { useState, useCallback } = React;
+
+  /* ── Login Page ─────────────────────────────────────────────────── */
+  function LoginPage({ onLogin }) {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError]       = useState('');
+    const [loading, setLoading]   = useState(false);
+
+    const handleSubmit = useCallback(async (e) => {
+      e.preventDefault();
+      setError('');
+      if (!username.trim() || !password) { setError('Identifiant et mot de passe requis.'); return; }
+      setLoading(true);
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: username.trim(), password }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Identifiants invalides');
+        }
+        const data = await res.json();
+        onLogin(data.username);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }, [username, password, onLogin]);
+
+    return (
+      <div className="card">
+        <h1>🏦 Mon Compte Bancaire</h1>
+        <div className="login-hint">Identifiant : <strong>user</strong> · Mot de passe : <strong>password</strong></div>
+        <form onSubmit={handleSubmit}>
+          <div className="section">
+            <label htmlFor="username">Identifiant</label>
+            <input
+              id="username"
+              type="text"
+              autoComplete="username"
+              placeholder="Votre identifiant"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+            />
+          </div>
+          <div className="section">
+            <label htmlFor="password">Mot de passe</label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Votre mot de passe"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+          </div>
+          {error && <div className="error">⚠ {error}</div>}
+          <button className="btn-primary" type="submit" disabled={loading}>
+            {loading ? 'Connexion…' : 'Se connecter'}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  /* ── Dashboard ───────────────────────────────────────────────────── */
+  function Dashboard({ currentUser, onLogout }) {
+    const [account, setAccount] = useState(null);
+    const [newName, setNewName] = useState('');
+    const [searchId, setSearchId] = useState('');
+    const [amount, setAmount]   = useState('');
+    const [error, setError]     = useState('');
+    const [info, setInfo]       = useState('');
+
+    const clearMessages = () => { setError(''); setInfo(''); };
+
+    const handleCreate = useCallback(async () => {
+      clearMessages();
+      if (!newName.trim()) { setError('Le nom est obligatoire.'); return; }
+      try {
+        const res = await fetch('/api/accounts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newName.trim() }),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        setAccount(data);
+        setSearchId(data.id);
+        setNewName('');
+        setInfo('Compte créé avec succès !');
+      } catch (e) {
+        setError('Erreur : ' + e.message);
+      }
+    }, [newName]);
+
+    const handleSearch = useCallback(async () => {
+      clearMessages();
+      if (!searchId.trim()) { setError("L'identifiant est obligatoire."); return; }
+      try {
+        const res = await fetch(`/api/accounts/${searchId.trim()}`);
+        if (!res.ok) throw new Error(await res.text());
+        setAccount(await res.json());
+      } catch (e) {
+        setError('Compte introuvable.');
+        setAccount(null);
+      }
+    }, [searchId]);
+
+    const handleDeposit = useCallback(async () => {
+      clearMessages();
+      const amt = parseFloat(amount);
+      if (!account || isNaN(amt) || amt <= 0) { setError('Montant invalide.'); return; }
+      try {
+        const res = await fetch(`/api/accounts/${account.id}/deposit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: amt }),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        setAccount(await res.json());
+        setAmount('');
+        setInfo('Dépôt effectué !');
+      } catch (e) {
+        setError('Erreur : ' + e.message);
+      }
+    }, [account, amount]);
+
+    const handleWithdraw = useCallback(async () => {
+      clearMessages();
+      const amt = parseFloat(amount);
+      if (!account || isNaN(amt) || amt <= 0) { setError('Montant invalide.'); return; }
+      try {
+        const res = await fetch(`/api/accounts/${account.id}/withdraw`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: amt }),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        setAccount(await res.json());
+        setAmount('');
+        setInfo('Retrait effectué !');
+      } catch (e) {
+        setError('Erreur : ' + e.message);
+      }
+    }, [account, amount]);
+
+    const handleLogout = useCallback(async () => {
+      try {
+        await fetch('/api/logout', { method: 'POST' });
+      } catch (_) {
+        // best-effort logout — always clear local session
+      } finally {
+        onLogout();
+      }
+    }, [onLogout]);
+
+    return (
+      <div className="card">
+        <div className="topbar">
+          <h1>🏦 Mon Compte</h1>
+          <button className="btn-logout" onClick={handleLogout}>⎋ {currentUser}</button>
+        </div>
+
+        {account && (
+          <div className="balance-display">
+            <div className="balance-label">Solde disponible</div>
+            <div className="balance-amount">
+              {Number(account.solde).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+            </div>
+            <div className="balance-name">{account.name}</div>
+          </div>
+        )}
+
+        {error && <div className="error">⚠ {error}</div>}
+        {info  && <div className="success">✓ {info}</div>}
+
+        {account && (
+          <div className="section">
+            <div className="row">
+              <input
+                type="number"
+                min="0"
+                placeholder="Montant (€)"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+              />
+            </div>
+            <div className="row" style={{marginTop:'0.5rem'}}>
+              <button className="btn-deposit" onClick={handleDeposit}>⬆ Déposer</button>
+              <button className="btn-withdraw" onClick={handleWithdraw}>⬇ Retirer</button>
+            </div>
+          </div>
+        )}
+
+        <hr className="divider" />
+
+        <div className="section">
+          <h2>Rechercher un compte</h2>
+          <div className="row">
+            <input
+              placeholder="Identifiant du compte (UUID)"
+              value={searchId}
+              onChange={e => setSearchId(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+            />
+            <button className="btn-primary" style={{width:'auto', marginTop:0}} onClick={handleSearch}>Voir</button>
+          </div>
+        </div>
+
+        <hr className="divider" />
+
+        <div className="section">
+          <h2>Créer un compte</h2>
+          <input
+            placeholder="Votre nom"
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleCreate()}
+            style={{marginBottom:'0.5rem'}}
+          />
+          <button className="btn-create" onClick={handleCreate}>Créer</button>
+          {account && (
+            <div className="id-display">ID : {account.id}</div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Root App ────────────────────────────────────────────────────── */
+  function App() {
+    const [user, setUser] = useState(null);
+
+    if (!user) {
+      return <LoginPage onLogin={setUser} />;
+    }
+    return <Dashboard currentUser={user} onLogout={() => setUser(null)} />;
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
+
