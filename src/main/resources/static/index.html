@@ -264,8 +264,13 @@
     }, [account, amount]);
 
     const handleLogout = useCallback(async () => {
-      await fetch('/api/logout', { method: 'POST' });
-      onLogout();
+      try {
+        await fetch('/api/logout', { method: 'POST' });
+      } catch (_) {
+        // best-effort logout — always clear local session
+      } finally {
+        onLogout();
+      }
     }, [onLogout]);
 
     return (
