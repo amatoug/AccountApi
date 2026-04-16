@@ -35,7 +35,7 @@ class MainTest {
         PrintStream mockOut = mock(PrintStream.class);
 
         try (MockedStatic<System> systemMock = Mockito.mockStatic(System.class)) {
-            systemMock.when(System::out).thenReturn(mockOut);
+            systemMock.when(() -> System.out).thenReturn(mockOut);
 
             Main.main(new String[]{});
 
@@ -48,7 +48,7 @@ class MainTest {
         PrintStream mockErr = mock(PrintStream.class);
 
         try (MockedStatic<System> systemMock = Mockito.mockStatic(System.class)) {
-            systemMock.when(System::err).thenReturn(mockErr);
+            systemMock.when(() -> System.err).thenReturn(mockErr);
 
             Main.main(new String[]{});
 

@@ -101,6 +101,12 @@ public class BankServiceTest {
     }
 
     @Test
+    void should_throw_exception_when_deposit_with_null_amount() {
+        UUID id = bankService.createAccount("Ali").getId();
+        Assertions.assertThatThrownBy(() -> bankService.deposit(null, id)).isInstanceOf(AnauthorizedAmountException.class);
+    }
+
+    @Test
     void should_withdraw_amount() {
         // Given
         BigDecimal depot = BigDecimal.valueOf(100);
@@ -116,13 +122,37 @@ public class BankServiceTest {
     }
 
     @Test
+    void should_subtract_amount_when_withdraw_is_less_than_balance() {
+        BigDecimal depot = BigDecimal.valueOf(100);
+        BigDecimal withdraw = BigDecimal.valueOf(40);
+        UUID id = bankService.createAccount("Ali").getId();
+        bankService.deposit(depot, id);
+
+        bankService.withdraw(withdraw, id);
+
+        Assertions.assertThat(bankService.getAccountById(id).getSolde()).isEqualTo(BigDecimal.valueOf(60));
+    }
+
+    @Test
     void should_throw_exception_when_withdraw_with_negative_amount() {
         UUID id = bankService.createAccount("Ali").getId();
         Assertions.assertThatThrownBy(() -> bankService.withdraw(BigDecimal.valueOf(-50),id)).isInstanceOf(AnauthorizedAmountException.class);
     }
+
+    @Test
+    void should_throw_exception_when_withdraw_with_null_amount() {
+        UUID id = bankService.createAccount("Ali").getId();
+        Assertions.assertThatThrownBy(() -> bankService.withdraw(null, id)).isInstanceOf(AnauthorizedAmountException.class);
+    }
+
     @Test
     void should_throw_exception_when_withdraw_with_bank_overdraft_authorized_exceeded() {
         UUID id = bankService.createAccount("Ali").getId();
         Assertions.assertThatThrownBy(() -> bankService.withdraw(BigDecimal.valueOf(10),id)).isInstanceOf(BankOverdraftAuthorizedExceededException.class);
+    }
+
+    @Test
+    void should_throw_exception_when_get_account_by_null_id() {
+        Assertions.assertThatThrownBy(() -> bankService.getAccountById(null)).isInstanceOf(AccountNotFoundException.class);
     }
 }
