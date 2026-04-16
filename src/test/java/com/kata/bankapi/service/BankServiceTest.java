@@ -118,7 +118,7 @@ public class BankServiceTest {
         bankService.withdraw(withdraw,id);
 
         // then
-        Assertions.assertThat(bankService.getAccountById(id).getSolde()).isEqualTo(depot.min(withdraw));
+        Assertions.assertThat(bankService.getAccountById(id).getSolde()).isEqualTo(depot.subtract(withdraw));
     }
 
     @Test

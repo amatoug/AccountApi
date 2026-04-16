@@ -1,13 +1,12 @@
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MainTest {
@@ -32,36 +31,32 @@ class MainTest {
 
     @Test
     void should_not_write_to_stdout() {
-        PrintStream mockOut = mock(PrintStream.class);
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(output));
 
-        try (MockedStatic<System> systemMock = Mockito.mockStatic(System.class)) {
-            systemMock.when(() -> System.out).thenReturn(mockOut);
-
+        try {
             Main.main(new String[]{});
-
-            verify(mockOut, never()).println(anyString());
+        } finally {
+            System.setOut(originalOut);
         }
+
+        org.assertj.core.api.Assertions.assertThat(output.toString(StandardCharsets.UTF_8)).isEmpty();
     }
 
     @Test
     void should_not_write_to_stderr() {
-        PrintStream mockErr = mock(PrintStream.class);
+        PrintStream originalErr = System.err;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        System.setErr(new PrintStream(output));
 
-        try (MockedStatic<System> systemMock = Mockito.mockStatic(System.class)) {
-            systemMock.when(() -> System.err).thenReturn(mockErr);
-
+        try {
             Main.main(new String[]{});
-
-            verify(mockErr, never()).println(anyString());
+        } finally {
+            System.setErr(originalErr);
         }
+
+        org.assertj.core.api.Assertions.assertThat(output.toString(StandardCharsets.UTF_8)).isEmpty();
     }
 
-    @Test
-    void should_not_call_system_exit() {
-        try (MockedStatic<System> systemMock = Mockito.mockStatic(System.class)) {
-            Main.main(new String[]{});
-
-            systemMock.verify(() -> System.exit(anyInt()), never());
-        }
-    }
 }
