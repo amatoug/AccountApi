@@ -2,8 +2,11 @@ package com.kata.bankapi.modele;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
@@ -33,10 +36,11 @@ public class TransferEntity {
     private String reference;
 
     @Column(nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private TransferStatus status;
 
     @Column(nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     public UUID getId() {
         return id;
@@ -82,15 +86,22 @@ public class TransferEntity {
         this.reference = reference;
     }
 
-    public String getStatus() {
+    public TransferStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TransferStatus status) {
         this.status = status;
     }
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    @PrePersist
+    void prePersist() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
     }
 }

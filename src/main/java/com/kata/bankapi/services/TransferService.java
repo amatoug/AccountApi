@@ -7,6 +7,7 @@ import com.kata.bankapi.exception.InvalidTransferAmountException;
 import com.kata.bankapi.exception.InvalidTransferRequestException;
 import com.kata.bankapi.modele.BankAccount;
 import com.kata.bankapi.modele.TransferEntity;
+import com.kata.bankapi.modele.TransferStatus;
 import com.kata.bankapi.repository.TransferRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +16,6 @@ import java.math.BigDecimal;
 
 @Service
 public class TransferService {
-
     private final TransferRepository transferRepository;
     private final BankService bankService;
     private final AuditService auditService;
@@ -51,7 +51,7 @@ public class TransferService {
         entity.setAmount(request.amount());
         entity.setCurrency(request.currency());
         entity.setReference(request.reference());
-        entity.setStatus("COMPLETED");
+        entity.setStatus(TransferStatus.COMPLETED);
         TransferEntity saved = transferRepository.save(entity);
 
         auditService.logTransfer(
@@ -61,6 +61,6 @@ public class TransferService {
                 request.currency()
         );
 
-        return new TransferResponse(saved.getId(), saved.getStatus());
+        return new TransferResponse(saved.getId(), saved.getStatus().name());
     }
 }
