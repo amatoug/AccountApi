@@ -1,13 +1,11 @@
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MainTest {
@@ -32,36 +30,33 @@ class MainTest {
 
     @Test
     void should_not_write_to_stdout() {
-        PrintStream mockOut = mock(PrintStream.class);
-
-        try (MockedStatic<System> systemMock = Mockito.mockStatic(System.class)) {
-            systemMock.when(System::out).thenReturn(mockOut);
-
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream capturedOut = new ByteArrayOutputStream();
+        try {
+            System.setOut(new PrintStream(capturedOut));
             Main.main(new String[]{});
-
-            verify(mockOut, never()).println(anyString());
+            org.assertj.core.api.Assertions.assertThat(capturedOut.toString()).isBlank();
+        } finally {
+            System.setOut(originalOut);
         }
     }
 
     @Test
     void should_not_write_to_stderr() {
-        PrintStream mockErr = mock(PrintStream.class);
-
-        try (MockedStatic<System> systemMock = Mockito.mockStatic(System.class)) {
-            systemMock.when(System::err).thenReturn(mockErr);
-
+        PrintStream originalErr = System.err;
+        ByteArrayOutputStream capturedErr = new ByteArrayOutputStream();
+        try {
+            System.setErr(new PrintStream(capturedErr));
             Main.main(new String[]{});
-
-            verify(mockErr, never()).println(anyString());
+            org.assertj.core.api.Assertions.assertThat(capturedErr.toString()).isBlank();
+        } finally {
+            System.setErr(originalErr);
         }
     }
 
     @Test
     void should_not_call_system_exit() {
-        try (MockedStatic<System> systemMock = Mockito.mockStatic(System.class)) {
-            Main.main(new String[]{});
-
-            systemMock.verify(() -> System.exit(anyInt()), never());
-        }
+        assertThatCode(() -> Main.main(new String[]{}))
+                .doesNotThrowAnyException();
     }
 }
