@@ -55,7 +55,9 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(Map.of("username", "user", "password", "wrong"))))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Identifiants invalides"));
+                .andExpect(jsonPath("$.errorCode").value("INVALID_CREDENTIALS"))
+                .andExpect(jsonPath("$.message").value("Invalid credentials"))
+                .andExpect(jsonPath("$.requestId").exists());
     }
 
     @Test
@@ -64,7 +66,9 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(Map.of("password", "password"))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Identifiant et mot de passe requis"));
+                .andExpect(jsonPath("$.errorCode").value("INVALID_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Username and password are required"))
+                .andExpect(jsonPath("$.requestId").exists());
     }
 
     @Test
@@ -73,7 +77,9 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(Map.of("username", "   ", "password", "password"))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Identifiant et mot de passe requis"));
+                .andExpect(jsonPath("$.errorCode").value("INVALID_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Username and password are required"))
+                .andExpect(jsonPath("$.requestId").exists());
     }
 
     @Test
@@ -82,7 +88,9 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(Map.of("username", "user"))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Identifiant et mot de passe requis"));
+                .andExpect(jsonPath("$.errorCode").value("INVALID_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Username and password are required"))
+                .andExpect(jsonPath("$.requestId").exists());
     }
 
     @Test
@@ -91,7 +99,9 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(Map.of("username", "user", "password", ""))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Identifiant et mot de passe requis"));
+                .andExpect(jsonPath("$.errorCode").value("INVALID_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Username and password are required"))
+                .andExpect(jsonPath("$.requestId").exists());
     }
 
     @Test
@@ -100,6 +110,8 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Identifiant et mot de passe requis"));
+                .andExpect(jsonPath("$.errorCode").value("INVALID_REQUEST"))
+                .andExpect(jsonPath("$.message").value("Username and password are required"))
+                .andExpect(jsonPath("$.requestId").exists());
     }
 }
