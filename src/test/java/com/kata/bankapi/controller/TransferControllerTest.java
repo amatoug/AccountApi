@@ -82,6 +82,29 @@ class TransferControllerTest {
     }
 
     @Test
+    @WithMockUser(authorities = "TRANSFER_CREATE")
+    void should_return_internal_error_with_request_id_for_unexpected_exception() throws Exception {
+        when(transferService.createTransfer(any())).thenThrow(new RuntimeException("db timeout"));
+
+        TransferRequest request = new TransferRequest(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                new BigDecimal("10.00"),
+                "EUR",
+                "ref"
+        );
+
+        mockMvc.perform(post("/api/transfers")
+                        .header("X-Request-Id", "req-500")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.errorCode").value("INTERNAL_ERROR"))
+                .andExpect(jsonPath("$.message").value("Unexpected error"))
+                .andExpect(jsonPath("$.requestId").value("req-500"));
+    }
+
+    @Test
     void should_return_unauthorized_when_not_authenticated() throws Exception {
         TransferRequest request = new TransferRequest(
                 UUID.randomUUID(),

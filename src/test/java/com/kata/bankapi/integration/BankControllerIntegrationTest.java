@@ -71,7 +71,10 @@ class BankControllerIntegrationTest {
     @WithMockUser
     void should_return_not_found_for_unknown_account() throws Exception {
         mockMvc.perform(get("/api/accounts/{id}", UUID.randomUUID()))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode").value("ACCOUNT_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("account not found"))
+                .andExpect(jsonPath("$.requestId").exists());
     }
 
     @Test
